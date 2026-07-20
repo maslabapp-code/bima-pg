@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+  <link rel="apple-touch-icon" sizes="192x192" href="/favicon-192.png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Login — BIMA Dashboard</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --maroon: #0E4AA8;
+      --green:  #0F8C90;
+      --blue:   #2378D6;
+      --ink:    #1a2236;
+      --muted:  #6b7a99;
+      --bg:     #f0f4fb;
+      --card:   #ffffff;
+      --radius: 18px;
+    }
+
+    body {
+      font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+      background: var(--bg);
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+    }
+
+    /* ── Background decor ── */
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 20% 0%, rgba(14,74,168,.13) 0%, transparent 70%),
+        radial-gradient(ellipse 60% 50% at 90% 100%, rgba(15,140,144,.10) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .login-wrap {
+      width: 100%;
+      max-width: 440px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ── Brand header ── */
+    .login-brand {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+    .login-brand .logo-box {
+      width: 72px; height: 72px;
+      background: var(--maroon);
+      border-radius: 22px;
+      display: grid;
+      place-items: center;
+      margin: 0 auto 16px;
+      box-shadow: 0 12px 32px rgba(14,74,168,.28);
+    }
+    .login-brand .logo-box img {
+      width: 52px; height: 52px;
+      object-fit: contain;
+    }
+    .login-brand h1 {
+      font-size: 26px;
+      font-weight: 900;
+      color: var(--ink);
+      letter-spacing: .02em;
+    }
+    .login-brand p {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    /* ── Card ── */
+    .login-card {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 36px 32px 32px;
+      box-shadow: 0 8px 40px rgba(14,74,168,.10), 0 1px 3px rgba(0,0,0,.06);
+    }
+
+    .login-card h2 {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--ink);
+      margin-bottom: 6px;
+    }
+    .login-card .subtitle {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 28px;
+    }
+
+    /* ── Form fields ── */
+    .field { margin-bottom: 18px; }
+    .field label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      margin-bottom: 8px;
+    }
+    .field-wrap { position: relative; }
+    .field-wrap .field-icon {
+      position: absolute;
+      left: 14px; top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      font-size: 16px;
+      pointer-events: none;
+    }
+    .field input {
+      width: 100%;
+      padding: 12px 14px 12px 42px;
+      border: 2px solid #e4eaf5;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--ink);
+      background: #f8faff;
+      outline: none;
+      transition: border-color .18s, box-shadow .18s, background .18s;
+    }
+    .field input:focus {
+      border-color: var(--blue);
+      background: #fff;
+      box-shadow: 0 0 0 4px rgba(35,120,214,.12);
+    }
+    .field input::placeholder { color: #b0bdd0; font-weight: 400; }
+
+    /* Password toggle */
+    .pwd-toggle {
+      position: absolute;
+      right: 12px; top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      padding: 4px;
+      font-size: 15px;
+      line-height: 1;
+    }
+    .pwd-toggle:hover { color: var(--ink); }
+
+    /* ── Submit button ── */
+    .btn-login {
+      width: 100%;
+      padding: 14px;
+      background: var(--maroon);
+      color: #fff;
+      border: none;
+      border-radius: 14px;
+      font-size: 15px;
+      font-weight: 800;
+      cursor: pointer;
+      margin-top: 8px;
+      transition: background .18s, box-shadow .18s, transform .1s;
+      box-shadow: 0 6px 20px rgba(14,74,168,.28);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .btn-login:hover  { background: #0d3d8a; box-shadow: 0 8px 28px rgba(14,74,168,.38); }
+    .btn-login:active { transform: scale(.98); }
+    .btn-login:disabled { opacity: .6; cursor: not-allowed; transform: none; }
+
+    /* Spinner */
+    .spinner {
+      width: 16px; height: 16px;
+      border: 2px solid rgba(255,255,255,.4);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      display: none;
+    }
+    .btn-login.loading .spinner { display: block; }
+    .btn-login.loading .btn-text { opacity: .7; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Error alert ── */
+    .alert {
+      padding: 12px 16px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 18px;
+      display: none;
+      align-items: center;
+      gap: 10px;
+    }
+    .alert.error   { background: #fff0f0; color: #c0392b; border: 1px solid #fdd; display: flex; }
+    .alert.success { background: #f0fff4; color: #1a7a4a; border: 1px solid #c3f0d6; display: flex; }
+
+    /* ── Footer ── */
+    .login-footer {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .login-footer a { color: var(--blue); text-decoration: none; font-weight: 600; }
+  
+    @media (max-width: 480px) {
+      body { padding: 16px; }
+      .login-card { padding: 24px 18px 20px; }
+      .login-brand .logo-box { width: 60px; height: 60px; border-radius: 18px; }
+      .login-brand h1 { font-size: 22px; }
+      .btn-login { font-size: 14px; padding: 13px; }
+    }
+
+  </style>
+</head>
+<body>
+
+<div class="login-wrap">
+  <!-- Brand -->
+  <div class="login-brand">
+    <div class="logo-box">
+      <img src="assets/bima-icon-logo.png" alt="BIMA" onerror="this.style.display='none';this.parentElement.textContent='B'" />
+    </div>
+    <h1>BIMA</h1>
+    <p>BRM Internasional BIM Academy</p>
+  </div>
+
+  <!-- Card -->
+  <div class="login-card">
+    <h2>Selamat datang 👋</h2>
+    <p class="subtitle">Masuk ke BIMA Information Delivery Dashboard</p>
+
+    <div class="alert" id="alertBox"></div>
+
+    <form id="loginForm" autocomplete="on">
+      <div class="field">
+        <label for="username">Username / Email</label>
+        <div class="field-wrap">
+          <span class="field-icon">👤</span>
+          <input type="text" id="username" name="username"
+                 placeholder="Masukkan username atau email"
+                 autocomplete="username" required />
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="password">Password</label>
+        <div class="field-wrap">
+          <span class="field-icon">🔒</span>
+          <input type="password" id="password" name="password"
+                 placeholder="Masukkan password"
+                 autocomplete="current-password" required />
+          <button type="button" class="pwd-toggle" id="pwdToggle" aria-label="Tampilkan password">👁</button>
+        </div>
+      </div>
+
+      <button type="submit" class="btn-login" id="loginBtn">
+        <div class="spinner"></div>
+        <span class="btn-text">Masuk ke Dashboard</span>
+      </button>
+    </form>
+  </div>
+
+  <div class="login-footer">
+    BIMA Dashboard v8 &nbsp;·&nbsp; ISO 19650
+  </div>
+</div>
+
+<script>
+  const API = "";  // sama origin
+
+  // Cek kalau sudah login → langsung ke dashboard (atau halaman guest)
+  (async () => {
+    try {
+      const r = await fetch(`${API}/api/auth/me`, { credentials: "include" });
+      if (r.ok) {
+        const me = await r.json();
+        window.location.replace(me.role === "guest" ? "/guest.html" : "/");
+      }
+    } catch (_) {}
+  })();
+
+  // Toggle password visibility
+  document.getElementById("pwdToggle").addEventListener("click", function () {
+    const inp = document.getElementById("password");
+    const show = inp.type === "password";
+    inp.type = show ? "text" : "password";
+    this.textContent = show ? "🙈" : "👁";
+  });
+
+  // Submit form
+  document.getElementById("loginForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const btn   = document.getElementById("loginBtn");
+    const alert = document.getElementById("alertBox");
+
+    const username = document.getElementById("username").value.trim();
+    const password = document.getElementById("password").value;
+
+    // Reset state
+    alert.className = "alert";
+    alert.style.display = "";
+    alert.textContent = "";
+    btn.classList.add("loading");
+    btn.disabled = true;
+
+    try {
+      const res = await fetch(`${API}/api/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ username, password }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert.textContent = "⚠️  " + (data.error || "Login gagal");
+        alert.className = "alert error";
+        alert.style.display = "";
+        return;
+      }
+
+      // Sukses
+      alert.textContent = `✅ Halo, ${data.user.fullName || data.user.username}! Mengarahkan...`;
+      alert.className = "alert success";
+      alert.style.display = "";
+
+      const dest = data.user.role === "guest" ? "/guest.html" : "/";
+      setTimeout(() => window.location.replace(dest), 800);
+
+    } catch (err) {
+      alert.textContent = "⚠️  Tidak bisa konek ke server. Pastikan backend berjalan.";
+      alert.className = "alert error";
+      alert.style.display = "";
+    } finally {
+      btn.classList.remove("loading");
+      btn.disabled = false;
+    }
+  });
+</script>
+</body>
+</html>

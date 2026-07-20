@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>BIMA Dashboard — Mode Guest (Lihat Saja)</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    body{background:var(--bg,#F4F8FC)}
+    .guest-shell{max-width:1280px;margin:0 auto;padding:20px}
+    .guest-topbar{
+      background:var(--maroon,#0E4AA8);color:#fff;border-radius:22px;
+      padding:18px 22px;display:flex;justify-content:space-between;align-items:center;
+      gap:14px;flex-wrap:wrap;margin-bottom:18px;box-shadow:0 16px 40px rgba(14,74,168,.18);
+    }
+    .guest-topbar-left{display:flex;align-items:center;gap:14px;min-width:0}
+    .guest-logo{width:44px;height:44px;border-radius:12px;background:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden}
+    .guest-logo img{width:100%;height:100%;object-fit:contain}
+    .guest-title h1{font-size:16px;margin:0}
+    .guest-title p{font-size:12px;margin:2px 0 0;color:rgba(255,255,255,.75)}
+    .guest-badge{background:#fff4e5;color:#b8720b;font-size:11px;font-weight:800;padding:4px 10px;border-radius:999px;letter-spacing:.04em}
+    .guest-logout{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.28);color:#fff;border-radius:12px;padding:9px 16px;font-weight:800;font-size:13px;cursor:pointer}
+    .guest-logout:hover{background:rgba(255,255,255,.24)}
+    .guest-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+    .guest-tab-btn{background:#fff;border:1px solid var(--line,#D8E6F3);color:var(--ink,#1c2b3a);border-radius:12px;padding:10px 16px;font-weight:800;font-size:13px;cursor:pointer}
+    .guest-tab-btn.active{background:var(--maroon,#0E4AA8);color:#fff;border-color:var(--maroon,#0E4AA8)}
+    .guest-notice{display:flex;align-items:center;gap:10px;background:#FFF7E6;border:1px solid #F3DFAE;color:#8a6416;border-radius:14px;padding:12px 16px;font-size:13px;margin-bottom:18px}
+    .info-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+    .info-item{background:#fff;border:1px solid var(--line,#D8E6F3);border-radius:14px;padding:12px 14px}
+    .info-item small{display:block;color:var(--muted,#7c8a97);font-weight:800;font-size:11px;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px}
+    .info-item span{font-size:14px;color:var(--ink,#1c2b3a);word-break:break-word}
+    @media (max-width: 860px){
+      .overview-charts-grid{grid-template-columns:1fr !important}
+    }
+    #loadingState, #errorState{padding:60px 20px;text-align:center;color:var(--muted,#7c8a97)}
+    #errorState{color:#b8272a}
+  </style>
+</head>
+<body>
+
+<div class="guest-shell">
+  <div class="guest-topbar">
+    <div class="guest-topbar-left">
+      <div class="guest-logo"><img src="assets/bima-icon-logo.png" alt="Logo BIMA" onerror="this.style.display='none'" /></div>
+      <div class="guest-title">
+        <h1 id="projectNameTitle">BIMA Dashboard</h1>
+        <p id="userGreeting">Mode Guest — Lihat Saja</p>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <span class="guest-badge">🔒 READ ONLY</span>
+      <button class="guest-logout" id="logoutBtn">Keluar</button>
+    </div>
+  </div>
+
+  <div class="guest-notice">
+    ℹ️ Akun ini hanya bisa <strong>melihat</strong> data project yang ditetapkan admin. Tidak ada perubahan, tambah, hapus, atau upload file yang bisa dilakukan dari akun ini.
+  </div>
+
+  <div id="loadingState">Memuat data project...</div>
+  <div id="errorState" style="display:none"></div>
+
+  <div id="content" style="display:none">
+    <div class="guest-tabs" id="guestTabs"></div>
+    <div class="panel table-card">
+      <div class="table-toolbar">
+        <div>
+          <h3 id="tabTitle" style="margin:0"></h3>
+          <div class="table-hint" id="tabHint"></div>
+        </div>
+        <input type="search" id="tabSearch" placeholder="Cari..." style="border:1px solid var(--line);border-radius:12px;padding:9px 12px;min-width:220px" />
+      </div>
+      <div class="table-wrap" id="tabContentWrap"></div>
+    </div>
+  </div>
+</div>
+
+<script src="guest.js"></script>
+</body>
+</html>

@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+  <link rel="apple-touch-icon" sizes="192x192" href="/favicon-192.png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Manajemen User — BIMA</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --maroon: #0E4AA8; --green: #0F8C90; --blue: #2378D6;
+      --ink: #1a2236; --muted: #6b7a99; --bg: #f0f4fb;
+    }
+    body { font-family: "Inter","Segoe UI",system-ui,sans-serif; background:var(--bg); min-height:100vh; }
+
+    /* ── Topbar ── */
+    .topbar {
+      background: var(--maroon);
+      color: #fff;
+      padding: 0 28px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 2px 16px rgba(14,74,168,.2);
+      position: sticky; top: 0; z-index: 10;
+    }
+    .topbar h1 { font-size: 17px; font-weight: 800; }
+    .topbar .tb-right { display:flex; align-items:center; gap:12px; font-size:13px; }
+    .topbar a { color:rgba(255,255,255,.8); text-decoration:none; font-weight:600; }
+    .topbar a:hover { color:#fff; }
+
+    /* ── Main ── */
+    .main { max-width: 900px; margin: 32px auto; padding: 0 20px 60px; }
+
+    .page-head {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 24px;
+    }
+    .page-head h2 { font-size: 22px; font-weight: 800; color: var(--ink); }
+    .page-head p  { font-size: 13px; color: var(--muted); margin-top: 3px; }
+
+    /* ── Tombol ── */
+    .btn {
+      padding: 9px 18px; border-radius: 12px; font-size: 13px; font-weight: 700;
+      cursor: pointer; border: none; transition: background .18s, box-shadow .18s;
+    }
+    .btn-primary { background: var(--maroon); color: #fff; box-shadow: 0 4px 14px rgba(14,74,168,.24); }
+    .btn-primary:hover { background: #0d3d8a; }
+    .btn-danger  { background: #fff0f0; color: #c0392b; border: 1px solid #fdd; }
+    .btn-danger:hover  { background: #ffe0e0; }
+    .btn-sm { padding: 5px 12px; font-size: 12px; border-radius: 8px; }
+
+    /* ── Table card ── */
+    .card {
+      background: #fff;
+      border-radius: 18px;
+      box-shadow: 0 4px 24px rgba(14,74,168,.08);
+      overflow: hidden;
+    }
+    table { width: 100%; border-collapse: collapse; }
+    th {
+      background: #f5f8ff; text-align: left;
+      padding: 12px 16px; font-size: 11px; font-weight: 800;
+      text-transform: uppercase; letter-spacing: .1em; color: var(--muted);
+      border-bottom: 1px solid #e8edf8;
+    }
+    td {
+      padding: 13px 16px; font-size: 13px; color: var(--ink);
+      border-bottom: 1px solid #f0f4fb; vertical-align: middle;
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #f8faff; }
+
+    .badge {
+      display: inline-block; padding: 3px 10px; border-radius: 999px;
+      font-size: 11px; font-weight: 800; letter-spacing: .05em;
+    }
+    .badge-admin { background: #e8f4fd; color: var(--maroon); }
+    .badge-user  { background: #f0f4fb; color: var(--muted); }
+    .badge-guest { background: #fff4e5; color: #b8720b; }
+    .badge-on    { background: #e8fdf0; color: #1a7a4a; }
+    .badge-off   { background: #fff0f0; color: #c0392b; }
+
+    /* ── Modal ── */
+    .overlay {
+      position: fixed; inset: 0;
+      background: rgba(10,20,50,.4);
+      display: none; place-items: center;
+      z-index: 100; padding: 20px;
+    }
+    .overlay.open { display: grid; }
+    .modal-card {
+      background: #fff; border-radius: 20px;
+      width: 100%; max-width: 440px;
+      padding: 28px 28px 24px;
+      box-shadow: 0 20px 60px rgba(14,74,168,.2);
+    }
+    .modal-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; }
+    .modal-head h3 { font-size: 17px; font-weight: 800; color: var(--ink); }
+    .modal-head button { background:none; border:none; font-size:22px; cursor:pointer; color:var(--muted); line-height:1; }
+
+    .field { margin-bottom: 16px; }
+    .field label { display:block; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.1em; color:var(--muted); margin-bottom:7px; }
+    .field input, .field select {
+      width:100%; padding:10px 14px; border:2px solid #e4eaf5;
+      border-radius:11px; font-size:13px; color:var(--ink);
+      background:#f8faff; outline:none;
+      transition:border-color .18s;
+    }
+    .field input:focus, .field select:focus { border-color:var(--blue); background:#fff; }
+    .field small { display:block; color:var(--muted); font-size:11px; margin-top:5px; }
+    .modal-actions { display:flex; gap:10px; justify-content:flex-end; margin-top:8px; }
+
+    /* Alert */
+    .alert { padding:10px 14px; border-radius:10px; font-size:13px; font-weight:600; margin-bottom:14px; display:none; }
+    .alert.error   { background:#fff0f0; color:#c0392b; border:1px solid #fdd; display:block; }
+    .alert.success { background:#f0fff4; color:#1a7a4a; border:1px solid #c3f0d6; display:block; }
+
+    #emptyState { text-align:center; padding:40px; color:var(--muted); font-size:14px; }
+  
+    @media (max-width: 768px) {
+      .topbar { padding: 0 14px; gap: 8px; flex-wrap: wrap; height: auto; min-height: 60px; padding-top: 10px; padding-bottom: 10px; }
+      .topbar h1 { font-size: 15px; }
+      .tb-right { flex-wrap: wrap; gap: 8px; }
+      .main { margin: 16px auto; padding: 0 12px 40px; }
+      .page-head { flex-direction: column; align-items: stretch; }
+      .page-head button { width: 100%; }
+      .card { border-radius: 14px; overflow-x: auto; }
+      table { min-width: 600px; }
+      th, td { padding: 10px 10px; font-size: 12px; }
+      .modal-card { border-radius: 0 !important; width: 100vw !important; max-width: 100vw !important; height: 100vh !important; max-height: 100vh !important; }
+      .overlay { padding: 0; }
+      .field input, .field select { font-size: 14px; }
+    }
+    @media (max-width: 400px) {
+      .topbar h1 { font-size: 13px; }
+      th, td { padding: 8px; font-size: 11px; }
+    }
+
+  </style>
+</head>
+<body>
+
+<!-- Topbar -->
+<div class="topbar">
+  <h1>⚙️ Manajemen User</h1>
+  <div class="tb-right">
+    <span id="adminName"></span>
+    <a href="/logs.html">📋 Activity Log</a>
+    <a href="/">← Dashboard</a>
+    <button class="btn btn-sm" onclick="doLogout()"
+      style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25)">
+      Logout
+    </button>
+  </div>
+</div>
+
+<!-- Main -->
+<div class="main">
+  <div class="page-head">
+    <div>
+      <h2>Daftar User</h2>
+      <p>Kelola akun admin dan user BIMA Dashboard</p>
+    </div>
+    <button class="btn btn-primary" onclick="openModal()">+ Tambah User</button>
+  </div>
+
+  <div id="alertGlobal" class="alert"></div>
+
+  <div class="card">
+    <table id="userTable">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Nama / Username</th>
+          <th>Email</th>
+          <th>Role</th>
+          <th>Status</th>
+          <th>Login Terakhir</th>
+          <th>Aksi</th>
+        </tr>
+      </thead>
+      <tbody id="userTbody">
+        <tr><td colspan="7" id="emptyState">Memuat data...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Modal tambah/edit user -->
+<div class="overlay" id="modalOverlay">
+  <div class="modal-card">
+    <div class="modal-head">
+      <h3 id="modalTitle">Tambah User</h3>
+      <button onclick="closeModal()">×</button>
+    </div>
+    <div id="modalAlert" class="alert"></div>
+    <div id="modalFields">
+      <div class="field">
+        <label>Nama Lengkap</label>
+        <input type="text" id="fFullName" placeholder="cth. Arif Arianto" />
+      </div>
+      <div class="field">
+        <label>Username</label>
+        <input type="text" id="fUsername" placeholder="cth. arif.arianto" />
+      </div>
+      <div class="field">
+        <label>Email</label>
+        <input type="email" id="fEmail" placeholder="cth. arif@bima.local" />
+      </div>
+      <div class="field">
+        <label>Password <span id="pwdHint" style="font-weight:400;text-transform:none"></span></label>
+        <input type="password" id="fPassword" placeholder="Minimal 6 karakter" />
+        <small id="pwdNote"></small>
+      </div>
+      <div class="field">
+        <label>Role</label>
+        <select id="fRole" onchange="onRoleChange()">
+          <option value="user">User — Lihat semua, tidak bisa hapus/reset</option>
+          <option value="admin">Admin — Akses penuh + kelola user</option>
+          <option value="guest">Guest — Lihat 1 project saja, tidak bisa edit</option>
+        </select>
+      </div>
+      <div class="field" id="fProjectWrap" style="display:none">
+        <label>Project yang boleh dilihat</label>
+        <select id="fProject">
+          <option value="">— Pilih project —</option>
+        </select>
+      </div>
+      <div class="field" id="fActiveWrap">
+        <label>Status</label>
+        <select id="fActive">
+          <option value="1">Aktif</option>
+          <option value="0">Nonaktif</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal()" style="background:#f0f4fb;color:var(--ink)">Batal</button>
+      <button class="btn btn-primary" onclick="saveUser()">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const API = "";
+  let users = [];
+  let projectsList = [];
+  let editingId = null;
+  let meId = null;
+
+  // ── Auth check ──
+  (async () => {
+    const r = await fetch(`${API}/api/auth/me`, { credentials: "include" });
+    if (!r.ok) { window.location.replace("/login.html"); return; }
+    const me = await r.json();
+    if (me.role !== "admin") { window.location.replace("/"); return; }
+    meId = me.id;
+    document.getElementById("adminName").textContent = me.fullName || me.username;
+    await loadProjectsList();
+    loadUsers();
+  })();
+
+  async function loadProjectsList() {
+    try {
+      const res = await fetch(`${API}/api/projects`, { credentials: "include" });
+      const data = await res.json();
+      projectsList = Array.isArray(data) ? data : [];
+      document.getElementById("fProject").innerHTML =
+        `<option value="">— Pilih project —</option>` +
+        projectsList.map(p => `<option value="${p.id}">${(p.projectInfo?.projectName) || p.id}</option>`).join("");
+    } catch (e) {
+      console.warn("Gagal memuat daftar project:", e.message);
+    }
+  }
+
+  function onRoleChange() {
+    const isGuest = document.getElementById("fRole").value === "guest";
+    document.getElementById("fProjectWrap").style.display = isGuest ? "block" : "none";
+  }
+
+  async function doLogout() {
+    await fetch(`${API}/api/auth/logout`, { method: "POST", credentials: "include" });
+    window.location.replace("/login.html");
+  }
+
+  // ── Load users ──
+  async function loadUsers() {
+    const res = await fetch(`${API}/api/auth/users`, { credentials: "include" });
+    users = await res.json();
+    renderTable();
+  }
+
+  function projectNameOf(id) {
+    if (!id) return "(belum ditetapkan)";
+    const p = projectsList.find(p => p.id === id);
+    return p ? (p.projectInfo?.projectName || p.id) : id;
+  }
+
+  function renderTable() {
+    const tbody = document.getElementById("userTbody");
+    if (!users.length) {
+      tbody.innerHTML = `<tr><td colspan="7" id="emptyState">Belum ada user</td></tr>`;
+      return;
+    }
+    tbody.innerHTML = users.map((u, i) => `
+      <tr>
+        <td style="color:var(--muted)">${i + 1}</td>
+        <td>
+          <div style="font-weight:700">${u.fullName}</div>
+          <div style="font-size:11px;color:var(--muted)">@${u.username}</div>
+        </td>
+        <td style="color:var(--muted)">${u.email}</td>
+        <td><span class="badge badge-${u.role}">${u.role.toUpperCase()}</span>${u.role === 'guest' ? `<div style="font-size:11px;color:var(--muted);margin-top:3px">${projectNameOf(u.allowedProjectId)}</div>` : ''}</td>
+        <td><span class="badge ${u.isActive ? 'badge-on' : 'badge-off'}">${u.isActive ? 'Aktif' : 'Nonaktif'}</span></td>
+        <td style="color:var(--muted);font-size:12px">${u.lastLogin ? new Date(u.lastLogin).toLocaleString("id") : '—'}</td>
+        <td>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-sm btn-primary" onclick="openModal(${u.id})">Edit</button>
+            ${u.id !== meId ? `<button class="btn btn-sm btn-danger" onclick="deleteUser(${u.id}, '${u.username}')">Hapus</button>` : `<span style="font-size:11px;color:var(--muted);padding:5px 6px">(Anda)</span>`}
+          </div>
+        </td>
+      </tr>
+    `).join("");
+  }
+
+  // ── Modal ──
+  function openModal(id = null) {
+    editingId = id;
+    const modal    = document.getElementById("modalOverlay");
+    const alert    = document.getElementById("modalAlert");
+    const pwdHint  = document.getElementById("pwdHint");
+    const pwdNote  = document.getElementById("pwdNote");
+    alert.className = "alert";
+    alert.textContent = "";
+
+    document.getElementById("fActiveWrap").style.display = id ? "block" : "none";
+
+    if (id) {
+      const u = users.find(u => u.id === id);
+      document.getElementById("modalTitle").textContent  = "Edit User";
+      document.getElementById("fFullName").value  = u.fullName;
+      document.getElementById("fUsername").value  = u.username;
+      document.getElementById("fEmail").value     = u.email;
+      document.getElementById("fPassword").value  = "";
+      document.getElementById("fRole").value      = u.role;
+      document.getElementById("fProject").value   = u.allowedProjectId || "";
+      document.getElementById("fActive").value    = u.isActive ? "1" : "0";
+      pwdHint.textContent = "(opsional — kosongkan jika tidak ganti)";
+      pwdNote.textContent = "Kosongkan jika tidak ingin mengubah password.";
+    } else {
+      document.getElementById("modalTitle").textContent  = "Tambah User Baru";
+      document.getElementById("fFullName").value  = "";
+      document.getElementById("fUsername").value  = "";
+      document.getElementById("fEmail").value     = "";
+      document.getElementById("fPassword").value  = "";
+      document.getElementById("fRole").value      = "user";
+      document.getElementById("fProject").value   = "";
+      document.getElementById("fActive").value    = "1";
+      pwdHint.textContent = "";
+      pwdNote.textContent = "";
+    }
+
+    onRoleChange();
+    modal.classList.add("open");
+    document.getElementById("fFullName").focus();
+  }
+
+  function closeModal() {
+    document.getElementById("modalOverlay").classList.remove("open");
+    editingId = null;
+  }
+
+  async function saveUser() {
+    const alert = document.getElementById("modalAlert");
+    alert.className = "alert";
+
+    const body = {
+      fullName: document.getElementById("fFullName").value.trim(),
+      username: document.getElementById("fUsername").value.trim(),
+      email:    document.getElementById("fEmail").value.trim(),
+      password: document.getElementById("fPassword").value,
+      role:     document.getElementById("fRole").value,
+      allowedProjectId: document.getElementById("fProject").value || null,
+      isActive: document.getElementById("fActive").value === "1",
+    };
+
+    if (!body.fullName || !body.email) {
+      alert.textContent = "Nama dan email wajib diisi";
+      alert.className = "alert error";
+      return;
+    }
+
+    if (body.role === "guest" && !body.allowedProjectId) {
+      alert.textContent = "Pilih project untuk akun guest ini";
+      alert.className = "alert error";
+      return;
+    }
+
+    try {
+      let res;
+      if (editingId) {
+        res = await fetch(`${API}/api/auth/users/${editingId}`, {
+          method: "PUT", credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+      } else {
+        if (!body.username || !body.password) {
+          alert.textContent = "Username dan password wajib untuk user baru";
+          alert.className = "alert error";
+          return;
+        }
+        res = await fetch(`${API}/api/auth/users`, {
+          method: "POST", credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+      }
+
+      const data = await res.json();
+      if (!res.ok) {
+        alert.textContent = data.error || "Gagal menyimpan";
+        alert.className = "alert error";
+        return;
+      }
+
+      closeModal();
+      showGlobalAlert("User berhasil disimpan ✓", "success");
+      loadUsers();
+    } catch (err) {
+      alert.textContent = err.message;
+      alert.className = "alert error";
+    }
+  }
+
+  async function deleteUser(id, username) {
+    if (!confirm(`Hapus user "@${username}"? Tindakan ini tidak bisa dibatalkan.`)) return;
+    const res = await fetch(`${API}/api/auth/users/${id}`, { method: "DELETE", credentials: "include" });
+    const data = await res.json();
+    if (!res.ok) { showGlobalAlert(data.error, "error"); return; }
+    showGlobalAlert("User dihapus ✓", "success");
+    loadUsers();
+  }
+
+  function showGlobalAlert(msg, type) {
+    const el = document.getElementById("alertGlobal");
+    el.textContent = msg;
+    el.className = `alert ${type}`;
+    setTimeout(() => { el.className = "alert"; }, 3000);
+  }
+
+  // Tutup modal saat klik overlay
+  document.getElementById("modalOverlay").addEventListener("click", function(e) {
+    if (e.target === this) closeModal();
+  });
+</script>
+</body>
+</html>

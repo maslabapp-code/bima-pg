@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+  <link rel="apple-touch-icon" sizes="192x192" href="/favicon-192.png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Activity Log — BIMA</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --maroon: #0E4AA8; --green: #0F8C90; --blue: #2378D6;
+      --ink: #1a2236; --muted: #6b7a99; --bg: #f0f4fb;
+    }
+    body { font-family: "Inter","Segoe UI",system-ui,sans-serif; background: var(--bg); min-height: 100vh; }
+
+    /* Topbar */
+    .topbar {
+      background: var(--maroon); color: #fff;
+      padding: 0 28px; height: 60px;
+      display: flex; align-items: center; justify-content: space-between;
+      box-shadow: 0 2px 16px rgba(14,74,168,.2);
+      position: sticky; top: 0; z-index: 10;
+    }
+    .topbar h1 { font-size: 17px; font-weight: 800; }
+    .topbar .tb-right { display: flex; align-items: center; gap: 12px; font-size: 13px; }
+    .topbar a { color: rgba(255,255,255,.85); text-decoration: none; font-weight: 600; }
+    .topbar a:hover { color: #fff; }
+    .btn-sm {
+      padding: 5px 14px; border-radius: 10px; font-size: 12px; font-weight: 700;
+      cursor: pointer; border: none;
+    }
+
+    /* Main */
+    .main { max-width: 1100px; margin: 28px auto; padding: 0 20px 60px; }
+
+    .page-head { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
+    .page-head h2 { font-size: 22px; font-weight: 800; color: var(--ink); }
+    .page-head p  { font-size: 13px; color: var(--muted); margin-top: 3px; }
+
+    /* Filter bar */
+    .filter-bar {
+      background: #fff; border-radius: 16px;
+      padding: 16px 20px; margin-bottom: 20px;
+      box-shadow: 0 2px 12px rgba(14,74,168,.07);
+      display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end;
+    }
+    .filter-bar .fgroup { display: flex; flex-direction: column; gap: 5px; }
+    .filter-bar label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+    .filter-bar input, .filter-bar select {
+      padding: 8px 12px; border: 2px solid #e4eaf5; border-radius: 10px;
+      font-size: 13px; color: var(--ink); background: #f8faff; outline: none;
+      transition: border-color .18s;
+    }
+    .filter-bar input:focus, .filter-bar select:focus { border-color: var(--blue); background: #fff; }
+    .filter-bar input[type="date"] { width: 148px; }
+    .filter-bar input[type="search"] { width: 200px; }
+    .btn-filter {
+      padding: 9px 20px; background: var(--maroon); color: #fff;
+      border: none; border-radius: 11px; font-size: 13px; font-weight: 700;
+      cursor: pointer; align-self: flex-end;
+    }
+    .btn-filter:hover { background: #0d3d8a; }
+    .btn-clear {
+      padding: 9px 16px; background: #f0f4fb; color: var(--muted);
+      border: none; border-radius: 11px; font-size: 13px; font-weight: 700;
+      cursor: pointer; align-self: flex-end;
+    }
+
+    /* Stats row */
+    .stats { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+    .stat-card {
+      background: #fff; border-radius: 14px; padding: 14px 20px;
+      box-shadow: 0 2px 10px rgba(14,74,168,.07);
+      flex: 1; min-width: 140px;
+    }
+    .stat-card .val { font-size: 24px; font-weight: 900; color: var(--maroon); }
+    .stat-card .lbl { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+    /* Table card */
+    .card { background: #fff; border-radius: 18px; box-shadow: 0 4px 24px rgba(14,74,168,.08); overflow: hidden; }
+    table { width: 100%; border-collapse: collapse; }
+    th {
+      background: #f5f8ff; text-align: left;
+      padding: 11px 14px; font-size: 11px; font-weight: 800;
+      text-transform: uppercase; letter-spacing: .08em; color: var(--muted);
+      border-bottom: 1px solid #e8edf8; white-space: nowrap;
+    }
+    td { padding: 11px 14px; font-size: 13px; color: var(--ink); border-bottom: 1px solid #f0f4fb; vertical-align: middle; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #f8faff; }
+
+    /* Badges */
+    .badge {
+      display: inline-block; padding: 3px 9px; border-radius: 999px;
+      font-size: 11px; font-weight: 800; letter-spacing: .04em; white-space: nowrap;
+    }
+    .badge-LOGIN         { background: #e8f5e9; color: #2e7d32; }
+    .badge-LOGOUT        { background: #fafafa; color: #757575; }
+    .badge-SYNC_DATA     { background: #e3f2fd; color: #1565c0; }
+    .badge-PROJECT_CREATE{ background: #e8f5e9; color: #1b5e20; }
+    .badge-PROJECT_DELETE{ background: #ffebee; color: #b71c1c; }
+    .badge-UPLOAD_FILE   { background: #fff8e1; color: #f57f17; }
+    .badge-USER_CREATE   { background: #f3e5f5; color: #6a1b9a; }
+    .badge-USER_UPDATE   { background: #ede7f6; color: #4527a0; }
+    .badge-USER_DELETE   { background: #ffebee; color: #b71c1c; }
+    .badge-CHANGE_PASSWORD{ background: #fff3e0; color: #e65100; }
+    .badge-admin { background: #e3f2fd; color: var(--maroon); }
+    .badge-user  { background: #f0f4fb; color: var(--muted); }
+
+    .detail-text { font-size: 12px; color: var(--muted); max-width: 240px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .time-text   { font-size: 12px; color: var(--muted); white-space: nowrap; }
+
+    /* Pagination */
+    .pagination {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 20px; border-top: 1px solid #f0f4fb;
+      font-size: 13px; color: var(--muted); flex-wrap: wrap; gap: 10px;
+    }
+    .page-btns { display: flex; gap: 6px; }
+    .page-btn {
+      padding: 6px 14px; border-radius: 9px; font-size: 13px; font-weight: 700;
+      cursor: pointer; border: 1px solid #e4eaf5; background: #f8faff; color: var(--ink);
+    }
+    .page-btn:hover { background: var(--maroon); color: #fff; border-color: var(--maroon); }
+    .page-btn:disabled { opacity: .4; cursor: default; }
+    .page-btn.active { background: var(--maroon); color: #fff; border-color: var(--maroon); }
+
+    /* Empty / loading */
+    .empty-row td { text-align: center; padding: 40px; color: var(--muted); }
+
+    /* Danger btn */
+    .btn-danger { background: #fff0f0; color: #c0392b; border: 1px solid #fdd; }
+    .btn-danger:hover { background: #ffe0e0; }
+  
+    @media (max-width: 768px) {
+      .topbar { padding: 0 14px; height: auto; min-height: 60px; padding-top: 10px; padding-bottom: 10px; flex-wrap: wrap; gap: 8px; }
+      .topbar h1 { font-size: 15px; }
+      .tb-right { flex-wrap: wrap; gap: 8px; }
+      .main { margin: 14px auto; padding: 0 12px 40px; }
+      .page-head { flex-direction: column; align-items: stretch; gap: 10px; }
+      .page-head button { width: 100%; }
+      .stats { gap: 8px; }
+      .stat-card { min-width: 120px; padding: 12px 14px; }
+      .stat-card .val { font-size: 20px; }
+      .filter-bar { gap: 10px; }
+      .filter-bar input[type="search"] { width: 100%; }
+      .filter-bar input[type="date"]   { width: 100%; }
+      .filter-bar .fgroup { width: 100%; }
+      .filter-bar input, .filter-bar select { width: 100%; }
+      .btn-filter, .btn-clear { width: 100%; }
+      .card { overflow-x: auto; border-radius: 14px; }
+      table { min-width: 680px; }
+      th, td { padding: 9px 10px; font-size: 12px; }
+      .pagination { flex-direction: column; align-items: stretch; gap: 10px; }
+      .page-btns { justify-content: center; flex-wrap: wrap; }
+      .detail-text { max-width: 160px; }
+    }
+    @media (max-width: 400px) {
+      .stats { grid-template-columns: 1fr 1fr; }
+      th, td { padding: 7px 8px; font-size: 11px; }
+    }
+
+  </style>
+</head>
+<body>
+
+<div class="topbar">
+  <h1>📋 Activity Log</h1>
+  <div class="tb-right">
+    <a href="/users.html">⚙ Kelola User</a>
+    <a href="/">← Dashboard</a>
+    <button class="btn-sm" onclick="doLogout()"
+      style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25)">
+      Logout
+    </button>
+  </div>
+</div>
+
+<div class="main">
+  <div class="page-head">
+    <div>
+      <h2>Activity Log</h2>
+      <p>Rekaman semua aktivitas user dalam sistem BIMA</p>
+    </div>
+    <button class="btn-sm btn-danger" onclick="clearOldLogs()"
+      style="padding:8px 16px;font-size:13px;border-radius:11px">
+      🧹 Hapus Log &gt;90 Hari
+    </button>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats">
+    <div class="stat-card"><div class="val" id="statTotal">—</div><div class="lbl">Total Log</div></div>
+    <div class="stat-card"><div class="val" id="statToday">—</div><div class="lbl">Hari Ini</div></div>
+    <div class="stat-card"><div class="val" id="statUsers">—</div><div class="lbl">User Aktif</div></div>
+  </div>
+
+  <!-- Filter -->
+  <div class="filter-bar">
+    <div class="fgroup">
+      <label>Cari</label>
+      <input type="search" id="fSearch" placeholder="Username, project, detail..." />
+    </div>
+    <div class="fgroup">
+      <label>Aksi</label>
+      <select id="fAction">
+        <option value="">Semua Aksi</option>
+      </select>
+    </div>
+    <div class="fgroup">
+      <label>User</label>
+      <select id="fUser">
+        <option value="">Semua User</option>
+      </select>
+    </div>
+    <div class="fgroup">
+      <label>Dari Tanggal</label>
+      <input type="date" id="fDateFrom" />
+    </div>
+    <div class="fgroup">
+      <label>Sampai</label>
+      <input type="date" id="fDateTo" />
+    </div>
+    <button class="btn-filter" onclick="loadLogs(1)">🔍 Filter</button>
+    <button class="btn-clear" onclick="clearFilter()">Reset</button>
+  </div>
+
+  <!-- Table -->
+  <div class="card">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Waktu</th>
+          <th>User</th>
+          <th>Role</th>
+          <th>Aksi</th>
+          <th>Project</th>
+          <th>Detail</th>
+          <th>IP</th>
+        </tr>
+      </thead>
+      <tbody id="logTbody">
+        <tr class="empty-row"><td colspan="8">Memuat data...</td></tr>
+      </tbody>
+    </table>
+    <div class="pagination" id="pagination" style="display:none">
+      <span id="pageInfo"></span>
+      <div class="page-btns" id="pageButtons"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const API = "";
+  let currentPage = 1;
+  let totalPages  = 1;
+
+  // ── Auth check ──
+  (async () => {
+    const r = await fetch(`${API}/api/auth/me`, { credentials: "include" });
+    if (!r.ok) { window.location.replace("/login.html"); return; }
+    const me = await r.json();
+    if (me.role !== "admin") { window.location.replace("/"); return; }
+    await Promise.all([loadFilters(), loadStats()]);
+    loadLogs(1);
+  })();
+
+  async function doLogout() {
+    await fetch(`${API}/api/auth/logout`, { method: "POST", credentials: "include" });
+    window.location.replace("/login.html");
+  }
+
+  // ── Load filter options ──
+  async function loadFilters() {
+    const [actRes, userRes] = await Promise.all([
+      fetch(`${API}/api/logs/actions`, { credentials: "include" }),
+      fetch(`${API}/api/logs/users`,   { credentials: "include" }),
+    ]);
+    const actions = await actRes.json();
+    const users   = await userRes.json();
+
+    const fAction = document.getElementById("fAction");
+    actions.forEach(a => {
+      const opt = document.createElement("option");
+      opt.value = a; opt.textContent = a.replace(/_/g, " ");
+      fAction.appendChild(opt);
+    });
+
+    const fUser = document.getElementById("fUser");
+    users.forEach(u => {
+      const opt = document.createElement("option");
+      opt.value = u.user_id; opt.textContent = u.username;
+      fUser.appendChild(opt);
+    });
+  }
+
+  // ── Stats ──
+  async function loadStats() {
+    try {
+      // Total
+      const r1 = await fetch(`${API}/api/logs?limit=1`, { credentials: "include" });
+      const d1 = await r1.json();
+      document.getElementById("statTotal").textContent = d1.total?.toLocaleString("id") || "0";
+
+      // Hari ini
+      const today = new Date().toISOString().slice(0,10);
+      const r2 = await fetch(`${API}/api/logs?limit=1&date_from=${today}&date_to=${today}`, { credentials: "include" });
+      const d2 = await r2.json();
+      document.getElementById("statToday").textContent = d2.total?.toLocaleString("id") || "0";
+
+      // User unik (dari endpoint users)
+      const r3 = await fetch(`${API}/api/logs/users`, { credentials: "include" });
+      const d3 = await r3.json();
+      document.getElementById("statUsers").textContent = d3.length || "0";
+    } catch (_) {}
+  }
+
+  // ── Load logs ──
+  async function loadLogs(page = 1) {
+    currentPage = page;
+    const tbody = document.getElementById("logTbody");
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="8">Memuat...</td></tr>`;
+
+    const params = new URLSearchParams({
+      page,
+      limit: 50,
+    });
+    const search   = document.getElementById("fSearch").value.trim();
+    const action   = document.getElementById("fAction").value;
+    const userId   = document.getElementById("fUser").value;
+    const dateFrom = document.getElementById("fDateFrom").value;
+    const dateTo   = document.getElementById("fDateTo").value;
+
+    if (search)   params.set("search",    search);
+    if (action)   params.set("action",    action);
+    if (userId)   params.set("user_id",   userId);
+    if (dateFrom) params.set("date_from", dateFrom);
+    if (dateTo)   params.set("date_to",   dateTo);
+
+    try {
+      const res  = await fetch(`${API}/api/logs?${params}`, { credentials: "include" });
+      const data = await res.json();
+      totalPages = data.totalPages || 1;
+
+      if (!data.data.length) {
+        tbody.innerHTML = `<tr class="empty-row"><td colspan="8">Tidak ada log ditemukan</td></tr>`;
+        document.getElementById("pagination").style.display = "none";
+        return;
+      }
+
+      const offset = (page - 1) * 50;
+      tbody.innerHTML = data.data.map((row, i) => `
+        <tr>
+          <td style="color:var(--muted);font-size:12px">${offset + i + 1}</td>
+          <td class="time-text">${formatTime(row.created_at)}</td>
+          <td>
+            <div style="font-weight:700;font-size:13px">${row.username}</div>
+          </td>
+          <td><span class="badge badge-${row.role}">${row.role.toUpperCase()}</span></td>
+          <td><span class="badge badge-${row.action}">${row.action.replace(/_/g," ")}</span></td>
+          <td style="font-size:12px;color:var(--muted)">${row.project_name || '—'}</td>
+          <td><div class="detail-text" title="${row.detail||''}">${row.detail || '—'}</div></td>
+          <td style="font-size:11px;color:var(--muted)">${row.ip_address || '—'}</td>
+        </tr>
+      `).join("");
+
+      renderPagination(data.total, page, data.totalPages);
+    } catch (err) {
+      tbody.innerHTML = `<tr class="empty-row"><td colspan="8">Error: ${err.message}</td></tr>`;
+    }
+  }
+
+  function renderPagination(total, page, pages) {
+    const pag  = document.getElementById("pagination");
+    const info = document.getElementById("pageInfo");
+    const btns = document.getElementById("pageButtons");
+
+    pag.style.display = "flex";
+    info.textContent  = `${total.toLocaleString("id")} log · Halaman ${page} dari ${pages}`;
+
+    // Tampilkan maks 5 halaman
+    let start = Math.max(1, page - 2);
+    let end   = Math.min(pages, start + 4);
+    if (end - start < 4) start = Math.max(1, end - 4);
+
+    let html = `<button class="page-btn" onclick="loadLogs(${page-1})" ${page<=1?"disabled":""}>‹</button>`;
+    for (let i = start; i <= end; i++) {
+      html += `<button class="page-btn ${i===page?"active":""}" onclick="loadLogs(${i})">${i}</button>`;
+    }
+    html += `<button class="page-btn" onclick="loadLogs(${page+1})" ${page>=pages?"disabled":""}>›</button>`;
+    btns.innerHTML = html;
+  }
+
+  function formatTime(dt) {
+    if (!dt) return "—";
+    const d = new Date(dt);
+    return d.toLocaleDateString("id",{day:"2-digit",month:"short",year:"numeric"})
+      + " " + d.toLocaleTimeString("id",{hour:"2-digit",minute:"2-digit"});
+  }
+
+  function clearFilter() {
+    document.getElementById("fSearch").value  = "";
+    document.getElementById("fAction").value  = "";
+    document.getElementById("fUser").value    = "";
+    document.getElementById("fDateFrom").value = "";
+    document.getElementById("fDateTo").value   = "";
+    loadLogs(1);
+  }
+
+  async function clearOldLogs() {
+    if (!confirm("Hapus semua log yang lebih dari 90 hari?\nTindakan ini tidak bisa dibatalkan.")) return;
+    const res  = await fetch(`${API}/api/logs/old`, { method: "DELETE", credentials: "include" });
+    const data = await res.json();
+    alert(`✅ ${data.deleted} log lama berhasil dihapus`);
+    loadStats();
+    loadLogs(1);
+  }
+
+  // Enter di filter juga trigger search
+  document.getElementById("fSearch").addEventListener("keydown", e => {
+    if (e.key === "Enter") loadLogs(1);
+  });
+</script>
+</body>
+</html>

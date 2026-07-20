@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+  <link rel="apple-touch-icon" sizes="192x192" href="/favicon-192.png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>BIMA MIDP/TIDP Dashboard v8</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.min.css" />
+</head>
+<body>
+  <!-- Mobile: hamburger button & backdrop -->
+<button class="hamburger-btn" id="hamburgerBtn" aria-label="Buka menu">
+  <span></span><span></span><span></span>
+</button>
+<div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+<div class="app-shell">
+    <aside class="sidebar" id="sidebarEl">
+      <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar" title="Perkecil sidebar">
+        <svg class="icon-collapse" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="15 18 9 12 15 6"></polyline>
+        </svg>
+        <svg class="icon-expand" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="9 18 15 12 9 6"></polyline>
+        </svg>
+      </button>
+      <div class="brand-block">
+        <div class="brand-mark brand-mark-image"><img src="assets/bima-icon-logo.png" alt="Logo BIMA" /></div>
+        <div class="brand-text">
+          <h1>BIMA</h1>
+          <p>BRM Internasional BIM Academy</p>
+        </div>
+      </div>
+
+      <div class="project-control">
+        <label for="projectSelect">Project Aktif</label>
+        <select id="projectSelect"></select>
+        <div class="project-actions">
+          <button class="mini-btn" id="newProjectBtn">+ Project</button>
+          <button class="mini-btn" id="editProjectBtn">Edit</button>
+          <button class="mini-btn" id="openProjectPickerBtn" title="Buka Project Picker" style="grid-column:1/-1">🔍 Cari Project</button>
+        </div>
+      </div>
+
+      <nav class="nav-tabs" aria-label="Dashboard navigation">
+        <button class="nav-btn active" data-target="overview" data-icon="◈" data-label="Overview"><span class="nav-icon">◈</span><div class="nav-top-row"><span class="nav-num">01</span><span class="nav-label">Overview</span></div><span class="nav-desc"></span</button>
+        <button class="nav-btn" data-target="eir" data-icon="📋" data-label="EIR"><span class="nav-icon">📋</span><div class="nav-top-row"><span class="nav-num">02</span><span class="nav-label">EIR</span></div><span class="nav-desc">Requirement from Customer</span</button>
+        <button class="nav-btn" data-target="bep" data-icon="📄" data-label="BEP"><span class="nav-icon">📄</span><div class="nav-top-row"><span class="nav-num">03</span><span class="nav-label">BEP</span></div><span class="nav-desc">Feedback to Customer</span</button>
+        <button class="nav-btn" data-target="midp" data-icon="📦" data-label="MIDP"><span class="nav-icon">📦</span><div class="nav-top-row"><span class="nav-num">04</span><span class="nav-label">MIDP</span></div><span class="nav-desc">Master Plan</span</button>
+        <button class="nav-btn" data-target="tidp" data-icon="📁" data-label="TIDP"><span class="nav-icon">📁</span><div class="nav-top-row"><span class="nav-num">05</span><span class="nav-label">TIDP</span></div><span class="nav-desc">Task Plan</span</button>
+        <button class="nav-btn" data-target="kurva" data-icon="📈" data-label="Kurva S"><span class="nav-icon">📈</span><div class="nav-top-row"><span class="nav-num">06</span><span class="nav-label">Kurva S</span></div><span class="nav-desc"></span</button>
+        <button class="nav-btn" data-target="cde" data-icon="🗂️" data-label="CDE"><span class="nav-icon">🗂️</span><div class="nav-top-row"><span class="nav-num">07</span><span class="nav-label">CDE</span></div><span class="nav-desc">Manajemen Data</span</button>
+        <button class="nav-btn" data-target="agreement" data-icon="🤝" data-label="Agreement"><span class="nav-icon">🤝</span><div class="nav-top-row"><span class="nav-num">08</span><span class="nav-label">Agreement & Penawaran</span></div><span class="nav-desc"></span</button>
+      </nav>
+
+      <div class="side-card">
+        <small>Penanggung Jawab BIMA</small>
+        <strong>Arif Arianto</strong>
+        <span>BIM Manager / Koordinator</span>
+      </div>
+
+      <div class="side-note">
+        <strong>ISO 19650</strong>
+        <span>EIR · BEP · TIDP · MIDP · CDE</span>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="topbar">
+        <div class="topbar-brand-wrap">
+          <div class="topbar-logo-card"><img src="assets/bima-primary-logo.png" alt="BIMA - BRM International BIM Academy" /></div>
+          <div class="topbar-title-group">
+            <p class="eyebrow">BIMA Information Delivery Dashboard</p>
+            <h2 id="headerProjectName">Garage Premium</h2>
+            <p class="muted"><span id="headerCompanyName">BIMA (BRM Internasional BIM Academy)</span> · Periode: <span id="headerPeriod">April - Mei 2026</span> · Fase: <span class="pill pill-run" id="headerPhase">Berjalan</span></p>
+          </div>
+        </div>
+        <div class="top-actions">
+          <button class="ghost-btn" id="exportBackupBtn">Export Backup JSON</button>
+          <button class="outline-btn" id="resetBtn">Reset Project Aktif</button>
+          <button class="primary-btn" id="saveBtn">Simpan</button>
+        </div>
+      </header>
+
+      <section id="overview" class="page active-page">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">Project Information Delivery Control</p>
+            <h3>Overview Implementasi BIM</h3>
+          </div>
+          <div class="status-strip"><span class="dot green"></span> Per-project local dashboard</div>
+        </div>
+
+        <div class="kpi-grid" id="kpiGrid"></div>
+
+        <div class="grid-3">
+          <article class="panel">
+            <div class="panel-title">
+              <div>
+                <h4>Distribusi Deliverable</h4>
+                <p>MIDP + TIDP berdasarkan status dropdown</p>
+              </div>
+            </div>
+            <div class="donut-wrap">
+              <canvas id="statusDonut" width="240" height="240"></canvas>
+              <div class="legend" id="statusLegend"></div>
+            </div>
+          </article>
+
+          <article class="panel wide">
+            <div class="panel-title">
+              <div>
+                <h4>Status per Disiplin</h4>
+                <p>Arsitektur, Struktur, MEP, dan Koordinasi</p>
+              </div>
+            </div>
+            <div id="disciplineBars" class="bar-stack"></div>
+          </article>
+
+          <article class="panel">
+            <div class="panel-title">
+              <div>
+                <h4>Progress Dokumen BIM</h4>
+                <p>EIR, BEP, CDE, Agreement</p>
+              </div>
+            </div>
+            <div id="documentProgress" class="phase-list"></div>
+          </article>
+        </div>
+
+        <article class="panel full chart-panel">
+          <div class="panel-title curve-title-row">
+            <div>
+              <h4>Kurva S Kumulatif Deliverable</h4>
+              <p>Rencana dan aktual tersinkronisasi dengan MIDP/TIDP serta bisa dikoreksi manual.</p>
+            </div>
+            <div id="curveSummary" class="curve-summary"></div>
+          </div>
+          <canvas id="sCurveOverview" height="300"></canvas>
+        </article>
+
+        <div class="grid-2">
+          <article class="panel">
+            <div class="panel-title">
+              <h4>Deadline Terdekat</h4>
+              <p>Deliverable yang belum selesai</p>
+            </div>
+            <div id="deadlineList" class="mini-list"></div>
+          </article>
+          <article class="panel">
+            <div class="panel-title">
+              <h4>Hierarki Dokumen ISO 19650</h4>
+              <p>Alur kebutuhan informasi proyek</p>
+            </div>
+            <div class="iso-flow">
+              <div>EIR</div><span>→</span><div>BEP</div><span>→</span><div>TIDP</div><span>→</span><div>MIDP</div><span>→</span><div>CDE</div><span>→</span><div>Handover</div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section id="eir" class="page">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">Exchange Information Requirement</p>
+            <h3>EIR — Kesepakatan Kebutuhan Informasi</h3>
+          </div>
+          <button class="primary-btn" data-add="eir">+ Tambah Item EIR</button>
+        </div>
+        <article class="panel full">
+          <div class="panel-title">
+            <div>
+              <h4>Informasi Proyek dalam EIR</h4>
+              <p>Data ini akan ikut masuk saat export dokumen EIR.</p>
+            </div>
+            <button class="outline-btn" id="editEirInfoBtn">Edit Informasi Proyek</button>
+          </div>
+          <div id="eirInfoGrid" class="info-grid"></div>
+        </article>
+        <div class="table-card">
+          <div class="table-toolbar">
+            <span class="table-hint">Tabel tanya-jawab: model/gambar untuk apa, oleh siapa, format apa, dan kapan dibutuhkan.</span>
+            <div class="export-actions" data-export="eir"></div>
+          </div>
+          <div class="table-wrap"><table id="eirTable" class="data-table"></table></div>
+        </div>
+      </section>
+
+      <section id="bep" class="page">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">BIM Execution Plan</p>
+            <h3>BEP — Kesepakatan Cara Kerja BIM</h3>
+          </div>
+          <button class="primary-btn" data-add="bep">+ Tambah Item BEP</button>
+        </div>
+        <div class="grid-2">
+          <article class="panel">
+            <h4>Ringkasan BEP</h4>
+            <p class="muted">BEP berisi cara kerja proyek: software, format, naming convention, review/approval, PIC, QA/QC, dan handover.</p>
+          </article>
+          <article class="panel">
+            <h4>Export Dokumen</h4>
+            <p class="muted">Tabel BEP dapat diekspor ke Excel, Word, atau dicetak sebagai PDF melalui browser.</p>
+          </article>
+        </div>
+        <div class="table-card">
+          <div class="table-toolbar">
+            <span class="table-hint">Gunakan tombol Edit untuk membuka popup. Tabel tidak diedit langsung agar mengurangi kesalahan.</span>
+            <div class="export-actions" data-export="bep"></div>
+          </div>
+          <div class="table-wrap"><table id="bepTable" class="data-table"></table></div>
+        </div>
+      </section>
+
+      <section id="midp" class="page">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">Master Information Delivery Plan</p>
+            <h3>MIDP — Konsolidasi Deliverable Proyek</h3>
+          </div>
+          <button class="primary-btn" data-add="midp">+ Tambah MIDP</button>
+        </div>
+        <div class="table-card">
+          <div class="table-toolbar">
+            <span class="table-hint">Status menggunakan dropdown agar rapi. Untuk mengubah data, klik Edit pada baris terkait.</span>
+            <div class="export-actions" data-export="midp"></div>
+          </div>
+          <div class="table-wrap"><table id="midpTable" class="data-table"></table></div>
+        </div>
+      </section>
+
+      <section id="tidp" class="page">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">Task Information Delivery Plan</p>
+            <h3>TIDP — Rencana Deliverable per Task Team</h3>
+          </div>
+          <button class="primary-btn" data-add="tidp">+ Tambah TIDP</button>
+        </div>
+        <div class="filter-row" id="disciplineFilter"></div>
+        <div class="table-card">
+          <div class="table-toolbar">
+            <span class="table-hint">Kolom Kode MIDP Terkait menghubungkan TIDP ke deliverable master.</span>
+            <div class="export-actions" data-export="tidp"></div>
+          </div>
+          <div class="table-wrap"><table id="tidpTable" class="data-table"></table></div>
+        </div>
+        <article class="panel full">
+          <div class="panel-title">
+            <div>
+              <h4>Mapping Kode TIDP ke MIDP</h4>
+              <p>Koneksi otomatis dari kolom Kode MIDP Terkait.</p>
+            </div>
+            <div class="export-actions" data-export="tidpMap"></div>
+          </div>
+          <div class="table-wrap compact"><table id="tidpMapTable" class="data-table"></table></div>
+        </article>
+      </section>
+
+      <section id="kurva" class="page">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">Information Delivery Progress</p>
+            <h3>Kurva S — Rencana vs Aktual</h3>
+          </div>
+        </div>
+        <div class="curve-toolbar">
+          <button class="primary-btn" id="syncCurveBtn">Sinkronkan dari MIDP/TIDP</button>
+          <button class="outline-btn" id="addCurvePointBtn">+ Tambah Titik</button>
+          <label class="switch-row"><input type="checkbox" id="autoCurveSync" /> Auto-sync saat MIDP/TIDP berubah</label>
+          <span class="sync-badge" id="curveSyncInfo">Rencana & Aktual</span>
+        </div>
+        <article class="panel full chart-panel">
+          <div class="panel-title curve-title-row">
+            <div>
+              <h4>Kurva S Kumulatif Deliverable</h4>
+              <p>Hanya Rencana dan Aktual. Titik dapat diedit melalui popup.</p>
+            </div>
+            <div id="curveSummary2" class="curve-summary"></div>
+          </div>
+          <canvas id="sCurve" height="340"></canvas>
+        </article>
+        <div class="table-card">
+          <div class="table-toolbar">
+            <span class="table-hint">Klik Edit pada titik untuk mengubah label, rencana, dan aktual.</span>
+            <div class="export-actions" data-export="curve"></div>
+          </div>
+          <div class="table-wrap compact"><table id="curveTable" class="data-table"></table></div>
+        </div>
+      </section>
+
+      <section id="cde" class="page">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">Common Data Environment</p>
+            <h3>CDE — Folderisasi, Checklist, Register, dan Upload</h3>
+          </div>
+          <button class="primary-btn" data-add="cdeRegister">+ Tambah Register</button>
+        </div>
+        <div class="grid-2 cde-top">
+          <article class="panel">
+            <div class="panel-title">
+              <h4>Folderisasi ISO 19650</h4>
+              <p>WIP, Shared, Published, Archived, Dashboard, dan Handover</p>
+            </div>
+            <div class="folder-tree" id="folderTree"></div>
+          </article>
+          <article class="panel">
+            <div class="panel-title">
+              <h4>Upload Server</h4>
+              <p>Endpoint dipakai untuk CDE Register dan Agreement.</p>
+            </div>
+            <div class="server-box">
+              <label>Server endpoint upload</label>
+              <input type="url" id="serverEndpoint" placeholder="https://domain-anda.com/upload" />
+              <small>Jika endpoint kosong, dashboard menyimpan metadata file secara lokal di browser.</small>
+            </div>
+          </article>
+        </div>
+        <article class="panel full">
+          <div class="panel-title">
+            <div>
+              <h4>Checklist Folderisasi CDE ISO 19650</h4>
+              <p>Keterangan wajib/tidak wajib dan checklist kelengkapan dokumen.</p>
+            </div>
+            <button class="outline-btn" data-add="cdeChecklist">+ Tambah Checklist</button>
+          </div>
+          <div class="table-toolbar"><span></span><div class="export-actions" data-export="cdeChecklist"></div></div>
+          <div class="table-wrap compact"><table id="cdeChecklistTable" class="data-table"></table></div>
+        </article>
+        <div class="table-card">
+          <div class="table-toolbar">
+            <span class="table-hint">Register CDE dengan upload file. Klik Edit untuk memilih file dan mengirim ke server.</span>
+            <div class="export-actions" data-export="cdeRegister"></div>
+          </div>
+          <div class="table-wrap"><table id="cdeRegisterTable" class="data-table"></table></div>
+        </div>
+      </section>
+
+      <section id="agreement" class="page">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">Agreement & Commercial Offer</p>
+            <h3>Agreement dan Penawaran</h3>
+          </div>
+          <button class="primary-btn" data-add="agreement">+ Tambah Dokumen</button>
+        </div>
+        <div class="grid-2">
+          <article class="panel">
+            <h4>Isi Bagian Ini</h4>
+            <p class="muted">Simpan penawaran, agreement, MoU/SPK, klarifikasi teknis, klarifikasi komersial, BA negosiasi, dan lampiran legal.</p>
+          </article>
+          <article class="panel">
+            <h4>Upload ke Server</h4>
+            <p class="muted">Gunakan endpoint yang sama dari halaman CDE. Setelah upload berhasil, URL server disimpan pada baris dokumen.</p>
+          </article>
+        </div>
+        <div class="table-card">
+          <div class="table-toolbar">
+            <span class="table-hint">Data file agreement dan penawaran per project.</span>
+            <div class="export-actions" data-export="agreement"></div>
+          </div>
+          <div class="table-wrap"><table id="agreementTable" class="data-table"></table></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Project Picker Modal -->
+  <dialog id="projectPickerModal" class="project-picker-dialog">
+    <div class="project-picker-card">
+      <div class="project-picker-head">
+        <div>
+          <p class="eyebrow">Pilih Project</p>
+          <h3>Project Picker</h3>
+        </div>
+        <button type="button" id="closeProjectPickerBtn" class="icon-btn" aria-label="Tutup">×</button>
+      </div>
+      <div class="project-picker-search">
+        <span class="picker-search-icon">🔍</span>
+        <input type="search" id="projectPickerSearch" placeholder="Cari nama project, company, fase..." autocomplete="off" />
+        <span id="projectPickerCount" class="picker-count"></span>
+      </div>
+      <div class="project-picker-body">
+        <table class="picker-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Nama Project</th>
+              <th>Company</th>
+              <th>Fase</th>
+              <th>Periode</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="projectPickerTbody"></tbody>
+        </table>
+        <div id="projectPickerEmpty" class="picker-empty" style="display:none">
+          Tidak ada project yang cocok dengan pencarian
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog id="rowModal" class="modal">
+    <form class="modal-card" id="rowForm" onsubmit="return false">
+      <div class="modal-head">
+        <div>
+          <p class="eyebrow" id="modalEyebrow">Edit Data</p>
+          <h3 id="modalTitle">Edit Baris</h3>
+        </div>
+        <button type="button" class="icon-btn" id="modalCloseBtn" aria-label="Tutup">×</button>
+      </div>
+      <div class="modal-body" id="modalFields"></div>
+      <div id="modalAlert" class="modal-alert" role="alert" aria-live="assertive"></div>
+      <div class="modal-actions">
+        <button type="button" class="ghost-btn" id="modalCancelBtn">Batal</button>
+        <button type="button" class="primary-btn" id="modalSaveBtn">Simpan</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div id="toast" class="toast">Data tersimpan</div>
+  <script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
