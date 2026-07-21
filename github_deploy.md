@@ -18,7 +18,7 @@ uploads/
 
 ### Push ke GitHub
 ```powershell
-cd C:\xampp\htdocs\bima-pg
+cd D:\0. Node Project\0. bima pg\bima-pg-final
 
 git init
 git add .
