@@ -51,14 +51,29 @@ git push
 
 ## 2.1 Timpa semua Project (Setelah Ada Perubahan)
 
-```powershell
-git merge --abort
-git push -u origin main --force
-git commit -m "Update V2"
-git push
-```
+    # 1. Masuk ke direktori projek
+    cd "D:\0. Node Project\0. bima pg\bima-pg-final"
 
----
+    # 2. Inisialisasi git (jika belum pernah git init di folder ini)
+    git init
+
+    # 3. Pastikan .env sudah dimasukkan ke .gitignore terlebih dahulu!
+    # (Buat file .gitignore jika belum ada, lalu isi dengan '.env')
+
+    # 4. Add dan commit semua file lokal baru
+    git add .
+    git commit -m "Replace all files with BIMA Dashboard v1.0"
+
+    # 5. Hubungkan ke remote repository (jika remote belum ada/belum diset)
+    # Gunakan 'set-url' jika remote 'origin' sudah pernah dibuat sebelumnya
+    git remote add origin https://github.com/maslabapp-code/bima-pg.git
+
+    # 6. Ganti nama branch ke main
+    git branch -M main
+
+    # 7. Force push ke GitHub untuk menimpa seluruh file lama
+    git push -u origin main --force
+    ---
 
 ## 3. Share Repo ke User/Tim
 
