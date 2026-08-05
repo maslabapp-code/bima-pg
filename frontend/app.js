@@ -861,6 +861,37 @@ function clearModalAlert() {
   el.textContent = "";
 }
 
+// ── Parser angka desimal yang toleran terhadap koma (,) maupun titik (.) ──
+// Menangani input seperti: "0,94" | "1.62" | "1.234,56" | "1,234.56" | " 30 "
+function parseDecimalInput(raw) {
+  if (raw === null || raw === undefined) return 0;
+  if (typeof raw === "number") return isNaN(raw) ? 0 : raw;
+  let s = String(raw).trim();
+  if (s === "") return 0;
+  s = s.replace(/[^0-9.,-]/g, ""); // buang karakter selain angka, koma, titik, minus
+  if (s === "" || s === "-") return 0;
+
+  const lastComma = s.lastIndexOf(",");
+  const lastDot   = s.lastIndexOf(".");
+
+  if (lastComma !== -1 && lastDot !== -1) {
+    // Ada dua-duanya → simbol yang muncul TERAKHIR dianggap pemisah desimal,
+    // simbol lainnya dianggap pemisah ribuan dan dibuang.
+    if (lastComma > lastDot) {
+      s = s.replace(/\./g, "").replace(",", ".");
+    } else {
+      s = s.replace(/,/g, "");
+    }
+  } else if (lastComma !== -1) {
+    // Hanya koma → anggap sebagai pemisah desimal
+    s = s.replace(",", ".");
+  }
+  // Hanya titik, atau tidak ada simbol sama sekali → biarkan (sudah format JS valid)
+
+  const n = parseFloat(s);
+  return isNaN(n) ? 0 : n;
+}
+
 function escapeHtml(value) {
   return String(value ?? "")
     .replaceAll("&", "&amp;")
@@ -1267,6 +1298,14 @@ function openRowModal(key, index) {
     }
   }, { passive: true });
 
+  // Batasi ketikan pada field angka (planned/actual dsb) hanya digit, koma, titik, minus
+  document.querySelectorAll('#modalFields input[inputmode="decimal"]').forEach(inp => {
+    inp.addEventListener("input", () => {
+      const cleaned = inp.value.replace(/[^0-9.,-]/g, "");
+      if (cleaned !== inp.value) inp.value = cleaned;
+    });
+  });
+
   document.getElementById("rowModal").showModal();
   // Validasi ukuran file maks 5 MB
   document.getElementById("rowFileInput")?.addEventListener("change", (e) => {
@@ -1366,7 +1405,10 @@ function createInputField(field, value, name, key = null) {
     return `<div class="field" ${reqAttr}><label>${escapeHtml(field.label)}${reqMark}</label><select name="${name}">${options}</select></div>`;
   }
   if (field.type === "number") {
-    return `<div class="field" ${reqAttr}><label>${escapeHtml(field.label)}${reqMark}</label><input type="number" name="${name}" value="${escapeHtml(value ?? 0)}" /></div>`;
+    // input type="text" + inputmode="decimal": native <input type="number"> menolak
+    // karakter koma di banyak browser, sehingga input desimal "0,94" gagal tersimpan.
+    // Parsing akhir tetap toleran koma/titik lewat parseDecimalInput() saat disimpan.
+    return `<div class="field" ${reqAttr}><label>${escapeHtml(field.label)}${reqMark}</label><input type="text" inputmode="decimal" autocomplete="off" name="${name}" value="${escapeHtml(value ?? 0)}" placeholder="cth: 0.94 atau 0,94" /></div>`;
   }
   if (field.type === "url") {
     return `<div class="field full"><label>${escapeHtml(field.label)}</label><input type="url" name="${name}" value="${escapeHtml(value ?? "")}" placeholder="https://..." /></div>`;
@@ -1787,7 +1829,7 @@ async function saveRowModal(formData) {
   const row = {};
   config.columns.forEach(col => {
     if (col.type === "checkbox") row[col.key] = Boolean(formData.get(col.key));
-    else if (col.type === "number") row[col.key] = Number(formData.get(col.key) || 0);
+    else if (col.type === "number") row[col.key] = parseDecimalInput(formData.get(col.key));
     else if (col.type === "readonly") row[col.key] = currentModal.row[col.key] || (index === null ? project[key].length + 1 : index + 1);
     else if (col.type === "date") {
       const raw = String(formData.get(col.key) || "").trim();
@@ -2615,9 +2657,29 @@ function syncCurveFromDeliverables(showToast = true) {
 
 function renderCurveSummary() {
   const project = getProject();
-  const last = project.curve[project.curve.length - 1] || { planned: 0, actual: 0 };
-  const html = `<span>Rencana: ${last.planned}</span><span>Aktual: ${last.actual}</span><span>Deviasi: ${last.actual - last.planned}</span>`;
+  const current = getCurrentCurvePoint(project.curve);
+  const planned = parseDecimalInput(current.planned);
+  const actual  = parseDecimalInput(current.actual);
+  const deviasi = actual - planned;
+  const fmt = n => (Number.isInteger(n) ? String(n) : n.toFixed(2));
+  const html = `<span>Rencana: ${fmt(planned)}</span><span>Aktual: ${fmt(actual)}</span><span>Deviasi: ${fmt(deviasi)}</span>`;
   ["curveSummary", "curveSummary2"].forEach(id => { const el = document.getElementById(id); if (el) el.innerHTML = html; });
+}
+
+// Cari titik kurva yang paling relevan untuk "progres saat ini" —
+// yaitu titik dengan nilai Aktual TERTINGGI yang sudah tercatat (kurva kumulatif = naik terus).
+// Sebelumnya kode selalu ambil titik paling akhir di array (tanggal target/akhir kurva),
+// padahal titik itu wajar actual=0 kalau tanggalnya masih di masa depan/belum direalisasikan —
+// bukan bug baca desimal, tapi salah pilih titik.
+function getCurrentCurvePoint(curve) {
+  if (!curve || !curve.length) return { planned: 0, actual: 0 };
+  let current = curve[0];
+  let maxActual = parseDecimalInput(curve[0].actual);
+  for (const point of curve) {
+    const a = parseDecimalInput(point.actual);
+    if (a >= maxActual) { maxActual = a; current = point; } // ">=" → pakai kemunculan terakhir kalau ada nilai sama (plateau)
+  }
+  return current;
 }
 
 function drawDonut(canvasId, items) {
@@ -2662,8 +2724,8 @@ function drawLineChart(canvasId, points, options = {}) {
   ctx.clearRect(0, 0, width, height);
   const padding = { top: 34, right: 26, bottom: 48, left: 48 };
   const labels = points.map(p => formatPeriodLabel(p.label) || p.label);
-  const planned = points.map(p => Number(p.planned || 0));
-  const actual = points.map(p => Number(p.actual || 0));
+  const planned = points.map(p => parseDecimalInput(p.planned));
+  const actual = points.map(p => parseDecimalInput(p.actual));
   const max = Math.max(...planned, ...actual, 10);
   const yMax = Math.ceil(max / 5) * 5;
   const chartW = Math.max(1, width - padding.left - padding.right);
@@ -2713,8 +2775,8 @@ function drawLineChart(canvasId, points, options = {}) {
   window.__chartNodes[canvasId] = points.map((p, idx) => ({
     idx,
     x:        xFor(idx),
-    yPlanned: yFor(Number(p.planned || 0)),
-    yActual:  yFor(Number(p.actual  || 0)),
+    yPlanned: yFor(parseDecimalInput(p.planned)),
+    yActual:  yFor(parseDecimalInput(p.actual)),
   }));
 
   // Cursor pointer saat hover node
