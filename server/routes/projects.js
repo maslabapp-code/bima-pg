@@ -34,6 +34,7 @@ const mapTidp = r => ({
 const mapCurve = r => ({
   no: r.no, label: r.label,
   planned: Number(r.planned), actual: Number(r.actual), locked: r.locked === true,
+  notes: r.notes,
 });
 const mapCdeChecklist = r => ({
   no: r.no, phase: r.phase, folder: r.folder, document: r.document,
@@ -249,9 +250,9 @@ router.post("/:id/sync", async (req, res) => {
     // ── Insert Curve ──
     for (const r of (data.curve || [])) {
       await client.query(
-        `INSERT INTO curve (project_id,no,label,planned,actual,locked)
-         VALUES ($1,$2,$3,$4,$5,$6)`,
-        [projectId,r.no,r.label,r.planned||0,r.actual||0,!!r.locked]
+        `INSERT INTO curve (project_id,no,label,planned,actual,locked,notes)
+         VALUES ($1,$2,$3,$4,$5,$6,$7)`,
+        [projectId,r.no,r.label,r.planned||0,r.actual||0,!!r.locked,r.notes]
       );
     }
 

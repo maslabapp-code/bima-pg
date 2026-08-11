@@ -592,6 +592,8 @@ let state = loadState();
 let activeTab = "overview";
 let currentModal = null;
 let saveTimer = null;
+let activeSaveRequest = null;       // Promise sync yang sedang berjalan (cegah request numpuk)
+let pendingResaveAfterActive = false; // ada perubahan baru saat sync sebelumnya masih jalan?
 
 function createId() {
   return `p_${Date.now()}_${Math.random().toString(16).slice(2)}`;
@@ -814,7 +816,51 @@ function saveState(showToast = true) {
     return;
   }
 
-  // Sync SEMUA project ke DB — DB adalah sumber kebenaran
+  // Sync HANYA project yang sedang aktif/dibuka ke DB.
+  // Sebelumnya kode ini sync SEMUA project setiap kali 1 baris diedit
+  // (dipanggil otomatis tiap tutup popup edit) — itu bikin setiap
+  // perubahan kecil memicu DELETE+INSERT ulang seluruh tabel di SEMUA
+  // project sekaligus, secara berurutan (bukan batch). Kalau ada
+  // beberapa project dengan banyak baris, ini bisa jadi ratusan query
+  // database berurutan dalam satu klik → terasa hang/freeze, dan kalau
+  // beberapa sync numpuk bareng bisa menghabiskan connection pool DB
+  // sampai request lain (termasuk logout) ikut antre lama.
+  const project = getProject();
+  if (!project) return;
+  if (activeSaveRequest) {
+    // Sync sebelumnya masih berjalan → jangan tumpuk request baru,
+    // cukup tandai perlu sync ulang setelah yang berjalan selesai.
+    pendingResaveAfterActive = true;
+    return;
+  }
+  activeSaveRequest = apiPost("/api/projects/" + project.id + "/sync", project)
+    .then(() => { if (showToast) toast("Tersimpan ke database ✓"); })
+    .catch(err => {
+      console.error("Gagal sync project", project.id, err.message);
+      if (showToast) toast("⚠️ Gagal simpan ke DB: " + err.message);
+    })
+    .finally(() => {
+      activeSaveRequest = null;
+      if (pendingResaveAfterActive) {
+        pendingResaveAfterActive = false;
+        saveState(false);
+      }
+    });
+}
+
+// Sinkronkan SEMUA project ke DB — dipakai untuk aksi eksplisit yang
+// memang butuh semua project (mis. tombol "Export Backup", load awal),
+// BUKAN dipanggil otomatis tiap kali 1 baris diedit.
+function saveAllProjectsState(showToast = true) {
+  if (isGuest()) {
+    if (showToast) toast("Akun guest tidak bisa mengubah data");
+    return;
+  }
+  localStorage.setItem(STORE_KEY, JSON.stringify(state));
+  if (!USE_DB) {
+    if (showToast) toast("Data tersimpan (lokal — offline mode)");
+    return;
+  }
   const allProjects = state.projects || [];
   Promise.all(allProjects.map(p =>
     apiPost("/api/projects/" + p.id + "/sync", p).catch(err => {
